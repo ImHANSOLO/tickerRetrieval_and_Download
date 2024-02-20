@@ -1,28 +1,34 @@
 import yfinance as yf
 import pandas as pd
-from tickerRetrieval import get_etf_tickers
+from tickerRetrieval import get_etf_tickers, extract_tickers
+
 
 
 def download_price_data(tickers):
-    # 创建一个空的DataFrame来存储所有ETF的价格数据
+    # Creating an empty DataFrame to store the price data of all ETFs
     all_data = pd.DataFrame()
 
     for ticker in tickers:
-        # 下载每个ETF的数据
-        data = yf.download(ticker, start="2022-01-01", end="2022-12-31")  # 示例日期范围
-        data['Ticker'] = ticker  # 添加一个新列以标识ETF的ticker
-        all_data = all_data.append(data)
-
-    # 返回包含所有ETF价格数据的DataFrame
+        # Downloading data for each ETF
+        try:
+            data = yf.download(ticker, start="2024-02-17", end="2024-02-17")  # here you can customise the start and end date
+            data['Ticker'] = ticker  # Add a new column to identify the ticker for ETF
+            all_data = pd.concat([all_data, data], ignore_index=True)
+        except KeyError:
+            print(f"Data for ticker {ticker} not found within the specified date range.")
+        except Exception as e:
+            print(f"An error occurred for ticker {ticker}: {e}")
+        print(all_data)
+    # Returns a DataFrame containing all ETF price data
     return all_data
 
 
-# 从tickerRetrieval.py获取ETF tickers
+# getting ETF tickers from tickerRetrieval.py
 base_url = "https://finviz.com/screener.ashx"
-etf_tickers = get_etf_tickers(base_url)
+etf_tickers = extract_tickers(get_etf_tickers(base_url))
 
-# 下载ETF价格数据
+# Download ETF price data
 etf_price_data = download_price_data(etf_tickers)
 
-# 选择保存数据的方式，例如保存为CSV文件
+# save the data as a CSV file
 etf_price_data.to_csv("etf_price_data.csv")
